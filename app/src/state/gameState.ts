@@ -18,6 +18,7 @@ export type Player = {
 export type GameState = {
   gameId: string;
   votes: Record<string, "JA" | "NEIN">;
+  electionTracker: number;
   players: Player[];
   presidentSeat: number;
   chancellorSeat: number | null;
@@ -31,6 +32,7 @@ export function createNewGame(): GameState {
   return {
     gameId: "game-1",
     votes: {},
+    electionTracker: 0,
     players: [
       { id: "p1", seat: 0, alive: true },
       { id: "p2", seat: 1, alive: true },
@@ -98,5 +100,42 @@ export function castVote(
       ...state.votes,
       [playerId]: vote,
     },
+  };
+}
+
+export function resolveVotes(state: GameState): GameState {
+  // Must be voting phase
+  if (state.phase !== GamePhase.VOTING) {
+    return state;
+  }
+
+  const votes = Object.values(state.votes);
+
+  // Not all players have voted yet
+  if (votes.length < state.players.length) {
+    return state;
+  }
+
+  const jaCount = votes.filter(v => v === "JA").length;
+  const neinCount = votes.filter(v => v === "NEIN").length;
+
+  // Government PASSES
+  if (jaCount > neinCount) {
+    return {
+      ...state,
+      phase: GamePhase.LEGISLATIVE_PRESIDENT,
+      electionTracker: 0,
+      votes: {},
+    };
+  }
+
+  // Government FAILS
+  return {
+    ...state,
+    electionTracker: state.electionTracker + 1,
+    chancellorSeat: null,
+    votes: {},
+    presidentSeat: (state.presidentSeat + 1) % state.players.length,
+    phase: GamePhase.NOMINATION,
   };
 }
