@@ -42,7 +42,7 @@ export function createNewGame(): GameState {
     ],
     presidentSeat: 0,
     chancellorSeat: null,
-    phase: GamePhase.LOBBY,
+    phase: GamePhase.NOMINATION,
     liberalPolicies: 0,
     fascistPolicies: 0,
     winner: null,
@@ -126,6 +126,8 @@ export function resolveVotes(state: GameState): GameState {
       phase: GamePhase.LEGISLATIVE_PRESIDENT,
       electionTracker: 0,
       votes: {},
+      chancellorSeat: state.chancellorSeat,
+
     };
   }
 
