@@ -17,6 +17,7 @@ export type Player = {
 
 export type GameState = {
   gameId: string;
+  votes: Record<string, "JA" | "NEIN">;
   players: Player[];
   presidentSeat: number;
   chancellorSeat: number | null;
@@ -29,6 +30,7 @@ export type GameState = {
 export function createNewGame(): GameState {
   return {
     gameId: "game-1",
+    votes: {},
     players: [
       { id: "p1", seat: 0, alive: true },
       { id: "p2", seat: 1, alive: true },
@@ -37,7 +39,7 @@ export function createNewGame(): GameState {
       { id: "p5", seat: 4, alive: true },
     ],
     presidentSeat: 0,
-    chancellorSeat: null;
+    chancellorSeat: null,
     phase: GamePhase.LOBBY,
     liberalPolicies: 0,
     fascistPolicies: 0,
@@ -73,3 +75,28 @@ export function nominateChancellor(
   };
 }
 
+export function castVote(
+  state: GameState,
+  playerId: string,
+  vote: "JA" | "NEIN"
+): GameState {
+  // Must be voting phase
+  if (state.phase !== GamePhase.VOTING) {
+    return state;
+  }
+
+  // Player must exist and be alive
+  const player = state.players.find(p => p.id === playerId);
+  if (!player || !player.alive) {
+    return state;
+  }
+
+  // Record vote
+  return {
+    ...state,
+    votes: {
+      ...state.votes,
+      [playerId]: vote,
+    },
+  };
+}
